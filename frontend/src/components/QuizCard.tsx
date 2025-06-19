@@ -160,6 +160,14 @@ export default function QuizCard() {
 				</>
 			)}
 
+			{result && pokemon?.imageUrl && (
+				<img
+					src={pokemon.imageUrl}
+					alt={pokemon.pokemonName}
+					className="w-32 h-32 object-contain mx-auto mb-4"
+				/>
+			)}
+
 			{result && (
 				<p
 					className={`text-lg font-bold ${
@@ -168,14 +176,6 @@ export default function QuizCard() {
 				>
 					{result}
 				</p>
-			)}
-
-			{result?.includes('Correct') && mode === 'expert' && pokemon?.imageUrl && (
-				<img
-					src={pokemon.imageUrl}
-					alt={pokemon.pokemonName}
-					className="w-32 h-32 object-contain mx-auto mb-4"
-				/>
 			)}
 		</div>
 	)
