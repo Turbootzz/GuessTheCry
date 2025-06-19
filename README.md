@@ -22,12 +22,16 @@
 GuessTheCry/
 ├── backend/                 # Java Spring Boot + Jersey API
 │   ├── src/main/java/com/guessthecry
-│   ├── application.properials
+│   ├── src/main/resources/application.properties
+│   ├── src/main/resources/data/pokemon-data.json
 │   └── build.gradle
 ├── frontend/                # React + Vite + TypeScript + Tailwind
 │   ├── src/App.tsx
 │   ├── tailwind.config.js
 │   └── postcss.config.js
+├── scripts/                 # Scripts for fetching audio and generating Pokémon data
+│   └── create-update-pokemon/
+│       └── generate-pokemon.mjs
 ├── README.md
 ```
 
@@ -58,6 +62,22 @@ npm run dev
 
 > Frontend runs at `http://localhost:5173` and expects the backend at `http://localhost:8080`.
 
+### 3. Generate Pokémon Data
+
+To download all Pokémon cries and generate metadata:
+
+```bash
+cd scripts/create-update-pokemon
+node generate-pokemon.mjs
+```
+
+This will:
+- Download .mp3 cries from Pokémon Showdown
+- Normalize names and upload them to MinIO
+- Save all Pokémon metadata to `pokemon-data.json`
+
+Move this JSON into `backend/src/main/resources/data` before running the backend.
+
 ---
 
 ## 🔌 API Overview
@@ -72,12 +92,14 @@ Returns a new quiz question depending on the selected mode.
 {
   "pokemonName": "squirtle",
   "audioUrl": "http://...",
+  "pokedexId": 7,
   "choices": [
     { "name": "pikachu", "imageUrl": "..." },
     { "name": "bulbasaur", "imageUrl": "..." },
     { "name": "squirtle", "imageUrl": "..." },
     { "name": "charmander", "imageUrl": "..." }
-  ]
+  ],
+  "imageUrl": "https://..." // correct answer image always included
 }
 ```
 
@@ -88,7 +110,7 @@ Returns a new quiz question depending on the selected mode.
   "pokemonName": "charmander",
   "audioUrl": "...",
   "hint": "Fire",
-  "imageUrl": "https://..." // only shown after correct answer
+  "imageUrl": "https://..." // correct answer image always included
 }
 ```
 
@@ -125,4 +147,3 @@ Made with ❤️ by **Thijs Herman**
 
 * Sounds by [Pokémon Showdown](https://play.pokemonshowdown.com/audio/cries/)
 * Images via [PokéAPI Artwork CDN](https://pokeapi.co/)
-
