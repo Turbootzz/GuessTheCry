@@ -9,5 +9,6 @@
 	"bracketSpacing": true,
 	"jsxSingleQuote": false,
 	"jsxBracketSameLine": false,
-	"endOfLine": "auto"
+	"endOfLine": "auto",
+	"plugins": ["prettier-plugin-tailwindcss"]
 }
