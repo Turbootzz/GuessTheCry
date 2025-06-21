@@ -1,5 +1,6 @@
 package com.guessthecry.webservices.question;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class QuestionDTO {
@@ -7,16 +8,16 @@ public class QuestionDTO {
     private String audioUrl;
     private List<ChoiceDTO> choices; // null when expert mode
     private String imageUrl;
-    private String hint; // null when normal mode
+    private List<String> hints = new ArrayList<>();// null when normal mode
 
     public QuestionDTO() {}
 
-    public QuestionDTO(String pokemonName, String audioUrl, List<ChoiceDTO> choices, String imageUrl, String hint) {
+    public QuestionDTO(String pokemonName, String audioUrl, List<ChoiceDTO> choices, String imageUrl, List<String> hints) {
         this.pokemonName = pokemonName;
         this.audioUrl = audioUrl;
         this.choices = choices;
         this.imageUrl = imageUrl;
-        this.hint = hint;
+        this.hints = hints;
     }
 
     public String getPokemonName() {
@@ -43,10 +44,10 @@ public class QuestionDTO {
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
-    public String getHint() {
-        return hint;
+    public List<String> getHints() {
+        return hints;
     }
-    public void setHint(String hint) {
-        this.hint = hint;
+    public void setHints(List<String> hints) {
+        this.hints = hints;
     }
 }

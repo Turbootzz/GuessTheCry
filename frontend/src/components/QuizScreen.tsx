@@ -18,11 +18,13 @@ export default function QuizScreen({
 }: QuizScreenProps) {
 	const [result, setResult] = useState<'correct' | 'incorrect' | null>(null)
 	const [guess, setGuess] = useState('')
+	const [hintIndex, setHintIndex] = useState(0)
 	const audioRef = useRef<HTMLAudioElement>(null)
 
 	useEffect(() => {
 		setResult(null)
 		setGuess('')
+		setHintIndex(0)
 		if (audioRef.current) {
 			audioRef.current.src = `${question.audioUrl}?t=${Date.now()}`
 			audioRef.current.play().catch(e => console.error('Audio play failed:', e))
@@ -37,7 +39,7 @@ export default function QuizScreen({
 	}
 
 	const progressPercentage = ((questionCount + 1) / totalQuestions) * 100
-
+	console.log('Hints:', question.hints)
 	return (
 		<div className="w-full max-w-lg rounded-lg bg-white p-8 text-center shadow-xl transition-all">
 			{/* Header */}
@@ -108,7 +110,7 @@ export default function QuizScreen({
 						</form>
 					)
 				) : (
-					// Resultaat
+					// Result
 					<div className="flex flex-col items-center justify-center">
 						<img
 							src={question.imageUrl}
@@ -121,6 +123,29 @@ export default function QuizScreen({
 							{result === 'correct' ? 'Correct!' : 'Incorrect!'}
 						</p>
 						<p className="mt-1 text-xl text-gray-700">It was {question.pokemonName}!</p>
+					</div>
+				)}
+				{/* Hints section */}
+				{mode === 'expert' && (
+					<div className="mt-6 text-left">
+						{Array.isArray(question.hints) && question.hints.length > 0 && (
+							<>
+								<p className="mb-2 font-semibold text-gray-700">Hints:</p>
+								<ul className="mb-2 list-inside list-disc text-gray-600">
+									{question.hints.slice(0, hintIndex).map((hint, index) => (
+										<li key={index}>💡 {hint}</li>
+									))}
+								</ul>
+							</>
+						)}
+						{hintIndex < (question.hints?.length ?? 0) && !result && (
+							<button
+								onClick={() => setHintIndex(hintIndex + 1)}
+								className="rounded bg-yellow-500 px-3 py-2 text-sm font-semibold text-white hover:bg-yellow-600"
+							>
+								Show Hint {hintIndex + 1}
+							</button>
+						)}
 					</div>
 				)}
 			</div>

@@ -3,6 +3,7 @@ package com.guessthecry.webservices.question;
 import com.guessthecry.config.S3Config;
 import com.guessthecry.model.Pokemon;
 import com.guessthecry.repository.PokemonRepository;
+import com.guessthecry.service.HintService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -19,6 +20,9 @@ public class QuestionResource {
     @Inject
     private PokemonRepository pokemonRepository;
 
+    @Inject
+    private HintService hintService;
+
     @GET
     @Path("/question")
     @Produces(MediaType.APPLICATION_JSON)
@@ -34,6 +38,7 @@ public class QuestionResource {
         QuestionDTO dto = new QuestionDTO();
         dto.setPokemonName(correct.getName());
         dto.setAudioUrl(S3Config.getEndpoint() + "/" + S3Config.getBucket() + "/" + correct.getAudioPath());
+        dto.setImageUrl("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + correct.getPokedexId() + ".png");
 
         if ("normal".equalsIgnoreCase(mode)) {
             Set<Pokemon> choiceSet = new HashSet<>();
@@ -48,17 +53,12 @@ public class QuestionResource {
 
             Collections.shuffle(choiceDTOs);
             dto.setChoices(choiceDTOs);
-            dto.setHint(null);
+            dto.setHints(new ArrayList<>()); // empty list instead of null
         } else if ("expert".equalsIgnoreCase(mode)) {
-            List<String> hints = correct.getHints();
-            if (hints != null && !hints.isEmpty()) {
-                String randomHint = hints.get(random.nextInt(hints.size()));
-                dto.setHint(randomHint);
-            }
+            List<String> hints = hintService.getHints(correct.getName());
+            dto.setHints(hints != null ? hints : new ArrayList<>());
             dto.setChoices(null);
         }
-
-        dto.setImageUrl("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + correct.getPokedexId() + ".png");
 
         return Response.ok(dto).build();
     }

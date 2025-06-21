@@ -14,7 +14,7 @@ export interface Question {
 	audioUrl: string
 	imageUrl: string
 	choices?: Choice[]
-	hint?: string | null
+	hints?: string[]
 }
 
 type GameMode = 'normal' | 'expert'
