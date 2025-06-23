@@ -4,6 +4,8 @@ public class UserStatsDTO {
     private String difficulty;
     private int gamesPlayed;
     private double averageAccuracy;
+    // per game
+    private Integer score;
 
     public UserStatsDTO() {
     }
@@ -12,6 +14,13 @@ public class UserStatsDTO {
         this.difficulty = difficulty;
         this.gamesPlayed = gamesPlayed;
         this.averageAccuracy = averageAccuracy;
+    }
+
+    public UserStatsDTO(String difficulty, int gamesPlayed, double averageAccuracy, Integer score) {
+        this.difficulty = difficulty;
+        this.gamesPlayed = gamesPlayed;
+        this.averageAccuracy = averageAccuracy;
+        this.score = score;
     }
 
     public String getDifficulty() {
@@ -32,4 +41,6 @@ public class UserStatsDTO {
     public void setAverageAccuracy(double averageAccuracy) {
         this.averageAccuracy = averageAccuracy;
     }
+    public Integer getScore() { return score; }
+    public void setScore(Integer score) { this.score = score; }
 }

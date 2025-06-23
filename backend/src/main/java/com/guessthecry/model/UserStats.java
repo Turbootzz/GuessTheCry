@@ -25,6 +25,11 @@ public class UserStats {
         this.averageAccuracy = averageAccuracy;
     }
 
+    public UserStats(User user, String difficulty) {
+        this.user = user;
+        this.difficulty = difficulty;
+    }
+
     public UserStats() {}
 
     public Long getId() {

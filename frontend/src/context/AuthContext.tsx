@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 interface User {
 	id: number
 	username: string
+	role: string
 }
 
 interface AuthContextProps {

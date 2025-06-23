@@ -12,17 +12,19 @@ export default function App() {
 	return (
 		<AuthProvider>
 			<BrowserRouter>
-				<Navbar />
-				<div className="flex min-h-screen items-center justify-center p-4">
-					<Routes>
-						<Route path="/login" element={<Login />} />
-						<Route path="/register" element={<Register />} />
-						<Route element={<ProtectedRoute />}>
-							<Route path="/" element={<QuizController />} />
-							<Route path="/profile" element={<Profile />} />
-						</Route>
-						<Route path="*" element={<div>404 - Page Not Found</div>} />
-					</Routes>
+				<div className="flex min-h-screen flex-col">
+					<Navbar />
+					<div className="flex flex-grow items-center justify-center">
+						<Routes>
+							<Route path="/login" element={<Login />} />
+							<Route path="/register" element={<Register />} />
+							<Route element={<ProtectedRoute />}>
+								<Route path="/" element={<QuizController />} />
+								<Route path="/profile" element={<Profile />} />
+							</Route>
+							<Route path="*" element={<div>404 - Page Not Found</div>} />
+						</Routes>
+					</div>
 				</div>
 			</BrowserRouter>
 		</AuthProvider>

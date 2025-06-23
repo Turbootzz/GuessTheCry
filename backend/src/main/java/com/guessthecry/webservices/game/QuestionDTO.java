@@ -1,4 +1,4 @@
-package com.guessthecry.webservices.question;
+package com.guessthecry.webservices.game;
 
 import java.util.ArrayList;
 import java.util.List;

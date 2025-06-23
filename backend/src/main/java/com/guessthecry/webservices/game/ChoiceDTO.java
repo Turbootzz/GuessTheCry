@@ -1,4 +1,4 @@
-package com.guessthecry.webservices.question;
+package com.guessthecry.webservices.game;
 
 public class ChoiceDTO {
     private String name;

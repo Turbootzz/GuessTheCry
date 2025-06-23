@@ -4,7 +4,7 @@ import ModeSelection from './ModeSelection'
 import QuizScreen from './QuizScreen'
 import ResultsScreen from './ResultsScreen'
 import { useAuth } from '../context/AuthContext'
-import { fetchQuestion as apiFetchQuestion } from '../utils/api'
+import { startGame as apiStartGame, submitAnswer as apiSubmitAnswer } from '../utils/api'
 
 interface Choice {
 	name: string
@@ -21,82 +21,122 @@ export interface Question {
 
 type GameMode = 'normal' | 'expert'
 
+const GAME_LENGTH = 10
+
 export default function QuizController() {
 	const auth = useAuth()
-	const [mode, setMode] = useState<GameMode | null>(null)
+
+	// Game State
+	const [gameId, setGameId] = useState<string | null>(null)
 	const [question, setQuestion] = useState<Question | null>(null)
-	const [score, setScore] = useState(0)
-	const [questionCount, setQuestionCount] = useState(0)
+	const [questionIndex, setQuestionIndex] = useState(0)
+	const [lastAnswerResult, setLastAnswerResult] = useState<{
+		correct: boolean
+		correctAnswerPokemonName: string
+	} | null>(null)
+
+	// UI State
+	const [mode, setMode] = useState<GameMode | null>(null)
 	const [showResult, setShowResult] = useState(false)
+	const [finalScore, setFinalScore] = useState({ score: 0, totalQuestions: 0 })
 	const [isLoading, setIsLoading] = useState(false)
+	const [error, setError] = useState<string | null>(null)
 
-	const fetchQuestion = (selectedMode: GameMode) => {
+	const handleModeSelect = async (selectedMode: GameMode) => {
 		setIsLoading(true)
-		setQuestion(null)
+		setError(null)
+		try {
+			const data = await apiStartGame(selectedMode, auth)
+			setMode(selectedMode)
+			setGameId(data.gameId)
+			setQuestion(data.firstQuestion)
+			setQuestionIndex(0)
+		} catch (err: any) {
+			setError(err.message || 'Failed to start game.')
+		} finally {
+			setIsLoading(false)
+		}
+	}
 
-		apiFetchQuestion(selectedMode, auth)
+	const handleAnswer = (userAnswer: string) => {
+		if (!gameId) return
+
+		// dont wait for de backend, but backend decides the score
+
+		// send answer to backend
+		apiSubmitAnswer(gameId, { questionIndex, userAnswer }, auth)
 			.then(data => {
-				setQuestion(data)
-				setIsLoading(false)
+				// show result for 2 seconds
+				setLastAnswerResult({
+					correct: data.correct,
+					correctAnswerPokemonName: data.correctAnswerPokemonName,
+				})
+
+				setTimeout(() => {
+					setLastAnswerResult(null)
+
+					if (data.nextQuestion) {
+						setQuestion(data.nextQuestion)
+						setQuestionIndex(prev => prev + 1)
+					} else if (data.finalResult) {
+						setFinalScore({
+							score: data.finalResult.score || 0,
+							totalQuestions: GAME_LENGTH,
+						})
+						setShowResult(true)
+					}
+				}, 2000)
 			})
 			.catch(err => {
-				console.error(err.message)
-				setIsLoading(false)
+				setError(err.message || 'An error occurred while submitting a anwser.')
 			})
-	}
-
-	const handleModeSelect = (selectedMode: GameMode) => {
-		setMode(selectedMode)
-		fetchQuestion(selectedMode)
-	}
-
-	const handleAnswer = (isCorrect: boolean) => {
-		if (isCorrect) {
-			setScore(prev => prev + 1)
-		}
-
-		// Wait to get new question
-		setTimeout(() => {
-			if (questionCount + 1 >= 10) {
-				setShowResult(true)
-			} else {
-				setQuestionCount(prev => prev + 1)
-				if (mode) fetchQuestion(mode)
-			}
-		}, 2000) // Time to see result
 	}
 
 	const handlePlayAgain = () => {
-		setScore(0)
-		setQuestionCount(0)
-		setShowResult(false)
-		setMode(null)
+		// Reset all states
+		setGameId(null)
 		setQuestion(null)
+		setQuestionIndex(0)
+		setLastAnswerResult(null)
+		setMode(null)
+		setShowResult(false)
+		setFinalScore({ score: 0, totalQuestions: 0 })
+		setError(null)
+	}
+
+	// Render logic
+	if (error) {
+		return <div className="text-red-500">{error}</div>
 	}
 
 	if (showResult) {
-		return <ResultsScreen score={score} totalQuestions={10} onPlayAgain={handlePlayAgain} />
-	}
-
-	if (!mode) {
-		return <ModeSelection onModeSelect={handleModeSelect} />
-	}
-
-	if (isLoading || !question) {
 		return (
-			<div className="text-pokemon-border p-8 text-center">
-				<p className="text-2xl">Loading next Pokémon...</p>
-			</div>
+			<ResultsScreen
+				score={finalScore.score}
+				totalQuestions={finalScore.totalQuestions}
+				onPlayAgain={handlePlayAgain}
+			/>
 		)
 	}
 
-	return (
-		<QuizScreen
-			question={question}
-			mode={mode}
-			questionCount={questionCount}
-			totalQuestions={10}
-			onAnswer={handleAnswer}
-		/>
-	)
+	if (isLoading) {
+		return <div>Loading...</div>
+	}
+
+	if (gameId && question) {
+		return (
+			<QuizScreen
+				key={questionIndex} // force re-render for new question
+				question={question}
+				mode={mode!}
+				questionCount={questionIndex}
+				totalQuestions={GAME_LENGTH}
+				onAnswer={handleAnswer}
+				lastAnswerResult={lastAnswerResult} // give answer
+			/>
+		)
+	}
+
+	// Begin state: toon modus selectie
+	return <ModeSelection onModeSelect={handleModeSelect} />
 }

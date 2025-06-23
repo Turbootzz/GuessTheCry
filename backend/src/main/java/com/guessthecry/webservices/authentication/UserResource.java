@@ -15,16 +15,12 @@ import java.util.*;
 
 @Path("/auth")
 public class UserResource {
-
     @Inject
     private UserRepository userRepository;
-
     @Inject
     private UserStatsRepository statsRepository;
-
     @Inject
     private PasswordEncoder passwordEncoder;
-
     @Inject
     private JwtUtil jwtUtil;
 

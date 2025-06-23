@@ -45,6 +45,41 @@ export async function login(username: string, password: string) {
 	return res.json()
 }
 
+export async function register(username: string, password: string) {
+	const res = await fetch(`${API_URL}/auth/register`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ username, password }),
+	})
+
+	if (!res.ok) {
+		// try to read error from backend
+		const errorData = await res.json().catch(() => ({ message: 'Registration failed' }))
+		throw new Error(errorData.message || 'Registration failed')
+	}
+	return res.json()
+}
+
 export function fetchQuestion(mode: string, auth: Auth) {
 	return apiFetch(`/quiz/question?mode=${mode}`, auth, { method: 'GET' })
+}
+
+export function fetchUserStats(userId: number, auth: Auth) {
+	return apiFetch(`/auth/${userId}/stats`, auth, { method: 'GET' })
+}
+
+// -- game-related functions
+export function startGame(mode: string, auth: Auth) {
+	return apiFetch(`/game/start?mode=${mode}`, auth, { method: 'POST' })
+}
+
+export function submitAnswer(
+	gameId: string,
+	answer: { questionIndex: number; userAnswer: string },
+	auth: Auth
+) {
+	return apiFetch(`/game/${gameId}/answer`, auth, {
+		method: 'POST',
+		body: JSON.stringify(answer),
+	})
 }
