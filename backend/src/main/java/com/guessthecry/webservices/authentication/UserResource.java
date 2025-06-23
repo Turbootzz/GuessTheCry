@@ -73,12 +73,14 @@ public class UserResource {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
-        String token = jwtUtil.generateToken(user.getUsername(), "USER");
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
 
-        Map<String, String> responseMap = new HashMap<>();
-        responseMap.put("token", token);
+        // DTO without password
+        UserDTO userResponseDto = new UserDTO(user.getId(), user.getUsername());
 
-        return Response.ok(responseMap).build();
+        LoginResponseDTO response = new LoginResponseDTO(token, userResponseDto);
+
+        return Response.ok(response).build();
     }
 
     @GET

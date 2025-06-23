@@ -3,6 +3,8 @@ import { useState } from 'react'
 import ModeSelection from './ModeSelection'
 import QuizScreen from './QuizScreen'
 import ResultsScreen from './ResultsScreen'
+import { useAuth } from '../context/AuthContext'
+import { fetchQuestion as apiFetchQuestion } from '../utils/api'
 
 interface Choice {
 	name: string
@@ -19,7 +21,8 @@ export interface Question {
 
 type GameMode = 'normal' | 'expert'
 
-export default function QuizCard() {
+export default function QuizController() {
+	const auth = useAuth()
 	const [mode, setMode] = useState<GameMode | null>(null)
 	const [question, setQuestion] = useState<Question | null>(null)
 	const [score, setScore] = useState(0)
@@ -30,14 +33,14 @@ export default function QuizCard() {
 	const fetchQuestion = (selectedMode: GameMode) => {
 		setIsLoading(true)
 		setQuestion(null)
-		fetch(`/api/quiz/question?mode=${selectedMode}`)
-			.then(res => res.json())
+
+		apiFetchQuestion(selectedMode, auth)
 			.then(data => {
 				setQuestion(data)
 				setIsLoading(false)
 			})
 			.catch(err => {
-				console.error('Failed to fetch question:', err)
+				console.error(err.message)
 				setIsLoading(false)
 			})
 	}
