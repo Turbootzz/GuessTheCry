@@ -44,3 +44,5 @@ bin/
 .env
 
 pokemon-data.json
+
+backend/src/main/resources/*

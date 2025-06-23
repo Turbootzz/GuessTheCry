@@ -2,12 +2,12 @@ package com.guessthecry.config;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
-@Configuration
+@Component
 public class JerseyConfig extends ResourceConfig {
     public JerseyConfig() {
+        packages("com.guessthecry.webservices");
         register(RolesAllowedDynamicFeature.class);
-        packages("com.guessthecry.webservices", "com.guessthecry.security");
     }
 }

@@ -15,15 +15,19 @@ public class User {
     @Column(unique = true, nullable = false)
     private String username;
 
-    private String passwordHash; // wachtwoord veilig opslaan (bcrypt ofzo)
+    @Column(nullable = false)
+    private String role = "User";
 
-    // Relatie naar stats
+    private String passwordHash;
+
+    // relation to stats
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserStats> stats = new ArrayList<>();
 
-    public User(Long id, String username, String passwordHash, List<UserStats> stats) {
+    public User(Long id, String username, String role, String passwordHash, List<UserStats> stats) {
         this.id = id;
         this.username = username;
+        this.role = role;
         this.passwordHash = passwordHash;
         this.stats = stats;
     }
@@ -41,6 +45,12 @@ public class User {
     }
     public void setUsername(String username) {
         this.username = username;
+    }
+    public String getRole() {
+        return role;
+    }
+    public void setRole(String role) {
+        this.role = role;
     }
     public String getPasswordHash() {
         return passwordHash;

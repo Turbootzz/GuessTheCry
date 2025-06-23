@@ -28,19 +28,29 @@ public class Pokemon {
         this.hints = hints;
     }
 
+    // setters are for tests
     public String getName() {
         return name;
     }
-
+    public void setName(String name) {
+        this.name = name;
+    }
     public String getAudioPath() {
         return audioPath;
     }
-
+    public void setAudioPath(String audioPath) {
+        this.audioPath = audioPath;
+    }
     public int getPokedexId() {
         return pokedexId;
     }
-
+    public void setPokedexId(int pokedexId) {
+        this.pokedexId = pokedexId;
+    }
     public List<String> getHints() {
         return hints;
+    }
+    public void setHints(List<String> hints) {
+        this.hints = hints;
     }
 }

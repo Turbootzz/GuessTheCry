@@ -25,6 +25,8 @@ public class UserStats {
         this.averageAccuracy = averageAccuracy;
     }
 
+    public UserStats() {}
+
     public Long getId() {
         return id;
     }

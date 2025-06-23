@@ -13,9 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.*;
 
-@Path("/api/auth")
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
+@Path("/auth")
 public class UserResource {
 
     @Inject
@@ -75,7 +73,7 @@ public class UserResource {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
-        String token = jwtUtil.generateToken(user.getUsername(), "USER"); // Pas rol aan indien nodig
+        String token = jwtUtil.generateToken(user.getUsername(), "USER");
 
         Map<String, String> responseMap = new HashMap<>();
         responseMap.put("token", token);

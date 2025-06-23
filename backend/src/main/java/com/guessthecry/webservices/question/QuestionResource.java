@@ -4,6 +4,7 @@ import com.guessthecry.config.S3Config;
 import com.guessthecry.model.Pokemon;
 import com.guessthecry.repository.PokemonRepository;
 import com.guessthecry.service.HintService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -15,7 +16,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Path("/api/quiz")
+@Path("/quiz")
 public class QuestionResource {
     @Inject
     private PokemonRepository pokemonRepository;
@@ -25,6 +26,7 @@ public class QuestionResource {
 
     @GET
     @Path("/question")
+    @RolesAllowed("ROLE_USER") // from User to ROLE_USER (spring security conversion)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getQuestion(@QueryParam("mode") String mode) {
         List<Pokemon> all = pokemonRepository.findAllWithHints();
