@@ -9,6 +9,9 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.*;
@@ -23,6 +26,8 @@ public class UserResource {
     private PasswordEncoder passwordEncoder;
     @Inject
     private JwtUtil jwtUtil;
+    @Inject
+    private AuthenticationManager authenticationManager;
 
     @POST
     @Path("/register")
@@ -58,25 +63,31 @@ public class UserResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("Missing username or password").build();
         }
 
-        Optional<User> userOpt = userRepository.findByUsername(userDto.getUsername());
-        if (userOpt.isEmpty()) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
+        try {
+            // let string boot validate authentication
+            // this will call CustomUserDetailsService and PasswordEncoder
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            userDto.getUsername(),
+                            userDto.getPassword()
+                    )
+            );
+
+            // if authentication() doesnt give an exception we can continue and safely generate token for user
+            User user = userRepository.findByUsername(userDto.getUsername())
+                    .orElseThrow(() -> new IllegalStateException("User not found after successful authentication"));
+
+            String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
+
+            UserDTO userResponseDto = new UserDTO(user.getId(), user.getUsername());
+            LoginResponseDTO response = new LoginResponseDTO(token, userResponseDto);
+
+            return Response.ok(response).build();
+
+        } catch (AuthenticationException e) {
+            // if authentication fails due to user input
+            return Response.status(Response.Status.UNAUTHORIZED).entity("Invalid username or password").build();
         }
-
-        User user = userOpt.get();
-
-        if (!passwordEncoder.matches(userDto.getPassword(), user.getPasswordHash())) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        }
-
-        String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
-
-        // DTO without password
-        UserDTO userResponseDto = new UserDTO(user.getId(), user.getUsername());
-
-        LoginResponseDTO response = new LoginResponseDTO(token, userResponseDto);
-
-        return Response.ok(response).build();
     }
 
     @GET
