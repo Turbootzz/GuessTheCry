@@ -92,8 +92,6 @@ This script will:
 
 ## 🔌 API Overview (New Secure Flow)
 
-The old `/api/quiz/question` endpoint is deprecated. All game interactions now happen through de beveiligde `/api/game` endpoints.
-
 ### Authentication
 *   `POST /api/auth/register` - Create a new user account.
 *   `POST /api/auth/login` - Log in to receive a JWT.

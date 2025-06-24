@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import type { Question } from './QuizController'
+//import AudioPlayer from './ui/AudioPlayer'
 
 interface QuizScreenProps {
 	question: Question
@@ -56,6 +57,7 @@ export default function QuizScreen({
 
 			<h2 className="mb-4 text-2xl font-bold text-gray-800">Guess the Pokémon Cry!</h2>
 			<audio ref={audioRef} controls className="mb-6 w-full" />
+			{/* <AudioPlayer audioUrl={question.audioUrl} ref={audioRef} /> */}
 
 			{/* Answer and Result section */}
 			<div className="min-h-[200px]">

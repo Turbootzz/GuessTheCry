@@ -1,6 +1,6 @@
 import './assets/css/global.css'
 import QuizController from './components/QuizController'
-import Navbar from './components/Navbar'
+import Navbar from './components/ui/Navbar'
 import { AuthProvider } from './context/AuthContext'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Login from './pages/Login'
