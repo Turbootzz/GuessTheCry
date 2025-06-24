@@ -1,51 +1,28 @@
 package com.guessthecry.config;
 
-import io.github.cdimascio.dotenv.Dotenv;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 
 public class S3Config {
-    private static final Dotenv dotenv = Dotenv.load();
+    @Value("${s3.endpoint}")
+    private String endpointValue;
+    @Value("${s3.cries.bucket}")
+    private String criesBucketValue;
+    @Value("${s3.sprites.bucket}")
+    private String spritesBucketValue;
 
-    private static final String endpoint = dotenv.get("S3_ENDPOINT");
-    private static final String criesBucket = dotenv.get("S3_CRIES_BUCKET");
-    private static final String spritesBucket = dotenv.get("S3_SPRITES_BUCKET");
-    private static final String accessKey = dotenv.get("S3_ACCESS_KEY");
-    private static final String secretKey = dotenv.get("S3_SECRET_KEY");
+    private static String endpoint;
+    private static String criesBucket;
+    private static String spritesBucket;
 
-    public static void envCheck() {
-        if (getEndpoint() == null) {
-            throw new IllegalStateException("Missing S3_ENDPOINT in .env");
-        }
-        if (getCriesBucket() == null) {
-            throw new IllegalStateException("Missing S3_CRIES_BUCKET in .env");
-        }
-        if (getSpritesBucket() == null) {
-            throw new IllegalStateException("Missing S3_SPRITES_BUCKET in .env");
-        }
-        if (getAccessKey() == null) {
-            throw new IllegalStateException("Missing S3_ACCESS_KEY in .env");
-        }
-        if (getSecretKey() == null) {
-            throw new IllegalStateException("Missing S3_SECRET_KEY in .env");
-        }
+    @PostConstruct
+    public void init() {
+        endpoint = this.endpointValue;
+        criesBucket = this.criesBucketValue;
+        spritesBucket = this.spritesBucketValue;
     }
 
-    public static String getEndpoint() {
-        return endpoint;
-    }
-
-    public static String getCriesBucket() {
-        return criesBucket;
-    }
-
-    public static String getSpritesBucket() {
-        return spritesBucket;
-    }
-
-    public static String getAccessKey() {
-        return accessKey;
-    }
-
-    public static String getSecretKey() {
-        return secretKey;
-    }
+    public static String getEndpoint() { return endpoint; }
+    public static String getCriesBucket() { return criesBucket; }
+    public static String getSpritesBucket() { return spritesBucket; }
 }
