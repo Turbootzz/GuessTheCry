@@ -4,9 +4,9 @@ public class ChoiceDTO {
     private String name;
     private String imageUrl;
 
-    public ChoiceDTO(String name, int pokedexId) {
+    public ChoiceDTO(String name, String imageUrl) {
         this.name = name;
-        this.imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + pokedexId + ".png";
+        this.imageUrl = imageUrl;
     }
 
     public void setName(String name) {

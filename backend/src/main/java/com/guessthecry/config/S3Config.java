@@ -6,7 +6,8 @@ public class S3Config {
     private static final Dotenv dotenv = Dotenv.load();
 
     private static final String endpoint = dotenv.get("S3_ENDPOINT");
-    private static final String bucket = dotenv.get("S3_BUCKET");
+    private static final String criesBucket = dotenv.get("S3_CRIES_BUCKET");
+    private static final String spritesBucket = dotenv.get("S3_SPRITES_BUCKET");
     private static final String accessKey = dotenv.get("S3_ACCESS_KEY");
     private static final String secretKey = dotenv.get("S3_SECRET_KEY");
 
@@ -14,8 +15,11 @@ public class S3Config {
         if (getEndpoint() == null) {
             throw new IllegalStateException("Missing S3_ENDPOINT in .env");
         }
-        if (getBucket() == null) {
-            throw new IllegalStateException("Missing S3_BUCKET in .env");
+        if (getCriesBucket() == null) {
+            throw new IllegalStateException("Missing S3_CRIES_BUCKET in .env");
+        }
+        if (getSpritesBucket() == null) {
+            throw new IllegalStateException("Missing S3_SPRITES_BUCKET in .env");
         }
         if (getAccessKey() == null) {
             throw new IllegalStateException("Missing S3_ACCESS_KEY in .env");
@@ -29,8 +33,12 @@ public class S3Config {
         return endpoint;
     }
 
-    public static String getBucket() {
-        return bucket;
+    public static String getCriesBucket() {
+        return criesBucket;
+    }
+
+    public static String getSpritesBucket() {
+        return spritesBucket;
     }
 
     public static String getAccessKey() {

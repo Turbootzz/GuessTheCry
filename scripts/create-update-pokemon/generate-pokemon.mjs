@@ -7,8 +7,10 @@ import dotenv from "dotenv";
 dotenv.config({ path: "../../backend/.env" });
 
 const BUCKET = "pokemon-cries";
+const SPRITE_BUCKET = "pokemon-sprites";
 const OUT_JSON = "pokemon-data.json";
 const OUT_AUDIO_DIR = "./audio";
+const OUT_SPRITE_DIR = "./sprites";
 const MAX_ID = 1025; // Change to maximum Pokémon ID that we want to fetch
 
 const showdownNameMap = {
@@ -66,9 +68,39 @@ const s3 = new AWS.S3({
 (async () => {
   const data = [];
   if (!fs.existsSync(OUT_AUDIO_DIR)) fs.mkdirSync(OUT_AUDIO_DIR);
+  if (!fs.existsSync(OUT_SPRITE_DIR)) fs.mkdirSync(OUT_SPRITE_DIR);
+
+  // check if sprites bucket exists, if not create it
+  try {
+	await s3.headBucket({ Bucket: SPRITE_BUCKET }).promise();
+	console.log(`Bucket "${SPRITE_BUCKET}" already exists.`);
+  } catch (err) {
+	console.log(`Bucket "${SPRITE_BUCKET}" not found. Creating...`);
+	await s3.createBucket({ Bucket: SPRITE_BUCKET }).promise();
+	// make the bucket public read
+	await s3
+	  .putBucketPolicy({
+		Bucket: SPRITE_BUCKET,
+		Policy: JSON.stringify({
+		  Version: "2012-10-17",
+		  Statement: [
+			{
+			  Sid: "PublicReadGetObject",
+			  Effect: "Allow",
+			  Principal: "*",
+			  Action: "s3:GetObject",
+			  Resource: `arn:aws:s3:::${SPRITE_BUCKET}/*`,
+			},
+		  ],
+		}),
+	  })
+	  .promise();
+	console.log(`Bucket "${SPRITE_BUCKET}" created and set to public read.`);
+  }
 
   for (let id = 1; id <= MAX_ID; id++) {
 	try {
+	  console.log(`\n--- Processing Pokémon ID: ${id} ---`);
 	  const res = await got(`https://pokeapi.co/api/v2/pokemon/${id}`, {
 		responseType: "json",
 	  });
@@ -79,8 +111,8 @@ const s3 = new AWS.S3({
 
 	  const json = res.body;
 	  const speciesJson = speciesRes.body;
-
 	  const name = json.name;
+
 	  const generationName = speciesJson.generation.name; // for example 'generation-iii'
 	  const generationMap = {
 		"generation-i": "gen1",
@@ -136,8 +168,36 @@ const s3 = new AWS.S3({
 		console.log(`⚠️ No audio for ${name}`);
 		continue;
 	  }
+
+	  // download sprite and upload
+	  const spriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+	  const spritePath = `${generation}/${id}.png`; 
+	  const localSpritePath = path.join(OUT_SPRITE_DIR, `${generation}/${id}.png`);
+
+	  try {
+		const spriteRes = await got(spriteUrl, {
+		  responseType: "buffer",
+		});
+		const spriteBuffer = spriteRes.body;
+		// Ensure the directory exists
+		fs.mkdirSync(path.dirname(localSpritePath), { recursive: true });
+		fs.writeFileSync(localSpritePath, spriteBuffer);
+
+		await s3
+		  .putObject({
+			Bucket: SPRITE_BUCKET,
+			Key: spritePath,
+			Body: spriteBuffer,
+			ContentType: "image/png",
+		  })
+		  .promise();
+
+		console.log(`✔️ Sprite Uploaded: ${spritePath} (for ${name})`);
+	  } catch (err) {
+		console.log(`⚠️ No sprite for ${name}`);
+	  }
 	} catch (e) {
-	  console.log(`❌ Error with ID ${id}:`, e.message);
+	  console.log(`❌ Error with Pokémon ID ${id}:`, e.message);
 	}
   }
 
