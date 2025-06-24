@@ -134,10 +134,7 @@ The old `/api/quiz/question` endpoint is deprecated. All game interactions now h
 
 ## 📸 Screenshots
 
-*(Hier kun je screenshots van je login, profielpagina en de game zelf toevoegen)*
-- *[Screenshot van de Generatie Selectie]*
-- *[Screenshot van de Quiz in Normal Mode]*
-- *[Screenshot van de Profielpagina met statistieken]*
+- Coming soon...
 
 ---
 
