@@ -5,6 +5,7 @@ import com.guessthecry.model.UserStats;
 import com.guessthecry.repository.UserRepository;
 import com.guessthecry.repository.UserStatsRepository;
 import com.guessthecry.utils.JwtUtil;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -92,6 +93,7 @@ public class UserResource {
 
     @GET
     @Path("/{id}")
+    @RolesAllowed({"User", "Admin"})
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUser(@PathParam("id") Long id) {
         Optional<User> userOpt = userRepository.findById(id);
@@ -106,6 +108,7 @@ public class UserResource {
 
     @GET
     @Path("/{id}/stats")
+    @RolesAllowed({"User", "Admin"})
     @Produces(MediaType.APPLICATION_JSON)
     public Response getStats(@PathParam("id") Long userId) {
         Optional<User> userOpt = userRepository.findById(userId);

@@ -33,6 +33,8 @@ public class GameResource {
     @Inject private UserStatsService userStatsService; // Service to update stats
     @Inject private ObjectMapper objectMapper; // For JSON conversion
     @Inject private PokemonService pokemonService;
+    @Inject
+    private S3Config s3Config;
 
     // helper class for JSON storage
     private record GameQuestion(int pokemonId, String correctAnswer) {}
@@ -40,6 +42,7 @@ public class GameResource {
 
     @POST
     @Path("/start")
+    @RolesAllowed({"User", "Admin"})
     @Produces(MediaType.APPLICATION_JSON)
     public Response startGame(@QueryParam("mode") String mode, @QueryParam("generation") @DefaultValue("0") int generationNumber) throws IOException {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -77,6 +80,7 @@ public class GameResource {
 
     @POST
     @Path("/{gameId}/answer")
+    @RolesAllowed({"User", "Admin"})
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response submitAnswer(@PathParam("gameId") UUID gameId, AnswerRequestDTO answerRequest) throws IOException {
@@ -116,8 +120,8 @@ public class GameResource {
                 .orElseThrow(() -> new WebApplicationException("Correct Pokémon not found", Response.Status.INTERNAL_SERVER_ERROR));
 
         responseDto.setCorrectAnswerImageUrl(
-                S3Config.getEndpoint() + "/" +
-                        S3Config.getSpritesBucket() + "/" +
+                s3Config.getEndpoint() + "/" +
+                        s3Config.getSpritesBucket() + "/" +
                         correctPokemon.getGeneration() + "/" +
                         currentQuestion.pokemonId() + ".png"
         );
@@ -142,9 +146,8 @@ public class GameResource {
     private QuestionDTO createQuestionDTO(Pokemon correct, String mode, List<Pokemon> pokemonPool) {
         QuestionDTO dto = new QuestionDTO();
         dto.setPokemonName(correct.getName());
-        dto.setAudioUrl(S3Config.getEndpoint() + "/" + S3Config.getCriesBucket() + "/" + correct.getAudioPath());
-        dto.setImageUrl(S3Config.getEndpoint() + "/" + S3Config.getSpritesBucket() + "/" + correct.getGeneration() + "/" + correct.getPokedexId() + ".png");
-
+        dto.setAudioUrl(s3Config.getEndpoint() + "/" + s3Config.getCriesBucket() + "/" + correct.getAudioPath());
+        dto.setImageUrl(s3Config.getEndpoint() + "/" + s3Config.getSpritesBucket() + "/" + correct.getGeneration() + "/" + correct.getPokedexId() + ".png");
         if ("normal".equalsIgnoreCase(mode)) {
             Set<Pokemon> choiceSet = new HashSet<>();
             choiceSet.add(correct);
@@ -157,7 +160,7 @@ public class GameResource {
             List<ChoiceDTO> choiceDTOs = choiceSet.stream()
                     .map(p -> new ChoiceDTO(
                             p.getName(),
-                            S3Config.getEndpoint() + "/" + S3Config.getSpritesBucket() + "/" + p.getGeneration() + "/" + p.getPokedexId() + ".png"
+                            s3Config.getEndpoint() + "/" + s3Config.getSpritesBucket() + "/" + p.getGeneration() + "/" + p.getPokedexId() + ".png"
                     ))
                     .collect(Collectors.toList());
 
