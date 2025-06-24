@@ -6,16 +6,16 @@ export default function Navbar() {
 
 	return (
 		<nav className="flex items-center justify-between bg-white p-4 shadow">
-			<Link to="/" className="text-lg font-bold text-indigo-600">
+			<Link to="/" className="text-lg font-bold text-emerald-700">
 				GuessTheCry
 			</Link>
 			<div>
 				{user ? (
 					<>
-						<Link to="/profile" className="mr-4 text-indigo-700">
+						<Link to="/profile" className="mr-4 text-emerald-700">
 							{user.username}
 						</Link>
-						<button onClick={logout} className="text-red-500">
+						<button onClick={logout} className="text-orange-700">
 							Logout
 						</button>
 					</>

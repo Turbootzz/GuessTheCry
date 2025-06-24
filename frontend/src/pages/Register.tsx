@@ -62,7 +62,7 @@ export default function Register() {
 					/>
 				</div>
 				<button
-					className="w-full rounded-lg bg-indigo-600 px-4 py-3 font-semibold text-white transition-colors hover:bg-indigo-700"
+					className="w-full rounded-lg bg-emerald-700 px-4 py-3 font-semibold text-white transition-colors hover:bg-emerald-800"
 					type="submit"
 				>
 					Register

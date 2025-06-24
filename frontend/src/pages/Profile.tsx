@@ -46,7 +46,7 @@ export default function Profile() {
 	return (
 		<div className="w-full max-w-2xl rounded-lg bg-white p-8 shadow-xl">
 			<h1 className="mb-2 text-4xl font-bold text-gray-800">
-				Welcome, <span className="text-indigo-600">{user?.username}</span>!
+				Welcome, <span className="text-emerald-700">{user?.username}</span>!
 			</h1>
 			<p className="mb-8 text-lg text-gray-600">Here are your game statistics.</p>
 
@@ -62,7 +62,7 @@ export default function Profile() {
 							</h2>
 							<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 								<div className="text-center">
-									<p className="text-4xl font-bold text-indigo-600">
+									<p className="text-4xl font-bold text-emerald-700">
 										{stat.gamesPlayed}
 									</p>
 									<p className="text-sm font-medium text-gray-500">
@@ -70,7 +70,7 @@ export default function Profile() {
 									</p>
 								</div>
 								<div className="text-center">
-									<p className="text-4xl font-bold text-indigo-600">
+									<p className="text-4xl font-bold text-emerald-700">
 										{stat.averageAccuracy.toFixed(1)}%
 									</p>
 									<p className="text-sm font-medium text-gray-500">
@@ -84,7 +84,7 @@ export default function Profile() {
 			) : (
 				<p className="mt-6 rounded-md bg-blue-50 p-4 text-center text-gray-700">
 					You haven't played any games yet.{' '}
-					<a href="/" className="font-bold text-indigo-600 hover:underline">
+					<a href="/" className="font-bold text-emerald-700 hover:underline">
 						Start a new game
 					</a>{' '}
 					to see your stats here!

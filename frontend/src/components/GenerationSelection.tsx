@@ -26,7 +26,7 @@ export default function GenerationSelection({ onGenerationSelect }: GenerationSe
 				{/* all Generations */}
 				<button
 					onClick={() => onGenerationSelect(allGenerationsOption.number)}
-					className="flex h-24 flex-grow basis-56 items-center justify-center rounded-lg bg-indigo-600 px-4 py-3 text-xl font-bold text-white shadow-lg transition-all hover:scale-105 hover:bg-indigo-700"
+					className="flex h-24 flex-grow basis-56 items-center justify-center rounded-lg bg-emerald-700 px-4 py-3 text-xl font-bold text-white shadow-lg transition-all hover:scale-105 hover:bg-emerald-800"
 				>
 					{allGenerationsOption.name}
 				</button>

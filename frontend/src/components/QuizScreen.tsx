@@ -44,12 +44,12 @@ export default function QuizScreen({
 		<div className="w-full max-w-lg rounded-lg bg-white p-8 text-center shadow-xl transition-all">
 			{/* Header */}
 			<div className="mb-6">
-				<p className="text-sm font-semibold text-indigo-600">
+				<p className="text-sm font-semibold text-emerald-700">
 					Question {questionCount + 1} of {totalQuestions}
 				</p>
 				<div className="mt-2 h-2.5 w-full rounded-full bg-gray-200">
 					<div
-						className="h-2.5 rounded-full bg-indigo-600"
+						className="h-2.5 rounded-full bg-emerald-700"
 						style={{ width: `${progressPercentage}%` }}
 					></div>
 				</div>
@@ -112,7 +112,7 @@ export default function QuizScreen({
 						/>
 						<button
 							type="submit"
-							className="w-full rounded-lg bg-indigo-600 py-3 font-semibold text-white transition-colors hover:bg-indigo-700"
+							className="w-full rounded-lg bg-emerald-700 py-3 font-semibold text-white transition-colors hover:bg-emerald-800"
 						>
 							Submit Guess
 						</button>
