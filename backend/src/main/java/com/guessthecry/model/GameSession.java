@@ -15,6 +15,9 @@ public class GameSession {
     @Column(nullable = false)
     private String difficulty;
 
+    @Column(nullable = false)
+    private int generation;
+
     // json-string or table to save questions and answers
     @Column(columnDefinition = "TEXT", nullable = false)
     private String questionsJson; // visualise: "[{"pokemonId": 25, "correctAnswer": "Pikachu"}, ...]"
@@ -42,6 +45,12 @@ public class GameSession {
     }
     public void setDifficulty(String difficulty) {
         this.difficulty = difficulty;
+    }
+    public int getGeneration() {
+        return generation;
+    }
+    public void setGeneration(int generation) {
+        this.generation = generation;
     }
     public String getQuestionsJson() {
         return questionsJson;

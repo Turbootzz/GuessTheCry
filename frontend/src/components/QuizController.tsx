@@ -1,6 +1,7 @@
 // controller
 import { useState } from 'react'
 import ModeSelection from './ModeSelection'
+import GenerationSelection from './GenerationSelection'
 import QuizScreen from './QuizScreen'
 import ResultsScreen from './ResultsScreen'
 import { useAuth } from '../context/AuthContext'
@@ -28,6 +29,7 @@ export default function QuizController() {
 
 	// Game State
 	const [gameId, setGameId] = useState<string | null>(null)
+	const [generation, setGeneration] = useState<number | null>(null)
 	const [question, setQuestion] = useState<Question | null>(null)
 	const [questionIndex, setQuestionIndex] = useState(0)
 	const [lastAnswerResult, setLastAnswerResult] = useState<{
@@ -42,11 +44,20 @@ export default function QuizController() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 
+	const handleGenerationSelect = (selectedGeneration: number) => {
+		setGeneration(selectedGeneration)
+	}
+
 	const handleModeSelect = async (selectedMode: GameMode) => {
+		if (generation === null) {
+			setError('Please select a generation first.')
+			return
+		}
+
 		setIsLoading(true)
 		setError(null)
 		try {
-			const data = await apiStartGame(selectedMode, auth)
+			const data = await apiStartGame(selectedMode, generation, auth)
 			setMode(selectedMode)
 			setGameId(data.gameId)
 			setQuestion(data.firstQuestion)
@@ -98,6 +109,7 @@ export default function QuizController() {
 		setQuestion(null)
 		setQuestionIndex(0)
 		setLastAnswerResult(null)
+		setGeneration(null)
 		setMode(null)
 		setShowResult(false)
 		setFinalScore({ score: 0, totalQuestions: 0 })
@@ -137,6 +149,10 @@ export default function QuizController() {
 		)
 	}
 
-	// Begin state: toon modus selectie
-	return <ModeSelection onModeSelect={handleModeSelect} />
+	// begin state
+	if (generation === null) {
+		return <GenerationSelection onGenerationSelect={handleGenerationSelect} />
+	} else {
+		return <ModeSelection onModeSelect={handleModeSelect} />
+	}
 }

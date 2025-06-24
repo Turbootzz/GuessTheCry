@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface PokemonRepository extends JpaRepository<Pokemon, Long> {
+    List<Pokemon> findByGeneration(String generation);
     Optional<Pokemon> findByPokedexId(int pokedexId);
 
     @Query("SELECT p FROM Pokemon p LEFT JOIN FETCH p.hints WHERE p.id = :id")

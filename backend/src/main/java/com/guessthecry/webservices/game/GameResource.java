@@ -32,19 +32,36 @@ public class GameResource {
     @Inject private UserStatsService userStatsService; // Service to update stats
     @Inject private ObjectMapper objectMapper; // For JSON conversion
 
-    // Helper class for JSON storage
+    // helper class for JSON storage
     private record GameQuestion(int pokemonId, String correctAnswer) {}
+
+    // helper
+    private List<Pokemon> getPokemonPoolByGeneration(int generationNumber) {
+        if (generationNumber == 0) {
+            return pokemonRepository.findAll();
+        } else {
+            String generationString = "gen" + generationNumber;
+            return pokemonRepository.findByGeneration(generationString);
+        }
+    }
 
     @POST
     @Path("/start")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response startGame(@QueryParam("mode") String mode) throws IOException {
+    public Response startGame(@QueryParam("mode") String mode, @QueryParam("generation") @DefaultValue("0") int generationNumber) throws IOException {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username).orElseThrow(() -> new WebApplicationException(Response.Status.UNAUTHORIZED));
 
-        List<Pokemon> allPokemon = pokemonRepository.findAll();
-        Collections.shuffle(allPokemon);
-        List<Pokemon> gamePokemon = allPokemon.subList(0, GAME_LENGTH);
+        List<Pokemon> pokemonPool = getPokemonPoolByGeneration(generationNumber);
+
+        if (pokemonPool.size() < GAME_LENGTH) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Not enough Pokémon in this generation to start a game.")
+                    .build();
+        }
+
+        Collections.shuffle(pokemonPool);
+        List<Pokemon> gamePokemon = pokemonPool.subList(0, GAME_LENGTH);
 
         List<GameQuestion> questions = gamePokemon.stream()
                 .map(p -> new GameQuestion(p.getPokedexId(), p.getName()))
@@ -53,12 +70,13 @@ public class GameResource {
         GameSession session = new GameSession();
         session.setUser(user);
         session.setDifficulty(mode);
+        session.setGeneration(generationNumber);
         session.setQuestionsJson(objectMapper.writeValueAsString(questions));
         session.setAnswersJson("[]"); // empty array for answers
         gameSessionRepository.save(session);
 
         // prepare first question
-        QuestionDTO firstQuestionDto = createQuestionDTO(gamePokemon.get(0), mode);
+        QuestionDTO firstQuestionDto = createQuestionDTO(gamePokemon.get(0), mode, pokemonPool);
         GameStartDTO responseDto = new GameStartDTO(session.getId(), firstQuestionDto);
 
         return Response.ok(responseDto).build();
@@ -99,15 +117,19 @@ public class GameResource {
         AnswerResponseDTO responseDto = new AnswerResponseDTO();
         responseDto.setCorrect(isCorrect);
         responseDto.setCorrectAnswerPokemonName(currentQuestion.correctAnswer());
-        // ... get image URL
+        responseDto.setCorrectAnswerImageUrl("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + currentQuestion.pokemonId() + ".png");
 
         if (answers.size() == GAME_LENGTH) {
             session.setCompleted(true);
             UserStatsDTO finalStats = userStatsService.updateUserStats(user, session.getDifficulty(), session.getScore(), GAME_LENGTH);
             responseDto.setFinalResult(finalStats);
+            responseDto.setNextQuestion(null);
         } else {
+            // get pokemonPool for next question
+            List<Pokemon> pokemonPool = getPokemonPoolByGeneration(session.getGeneration());
             Pokemon nextPokemon = pokemonRepository.findByPokedexId(questions.get(answers.size()).pokemonId()).orElseThrow();
-            responseDto.setNextQuestion(createQuestionDTO(nextPokemon, session.getDifficulty()));
+            responseDto.setNextQuestion(createQuestionDTO(nextPokemon, session.getDifficulty(), pokemonPool));
+            responseDto.setFinalResult(null); // game is not over yet
         }
 
         gameSessionRepository.save(session);
@@ -115,20 +137,19 @@ public class GameResource {
     }
 
     // Helper to make QuestionDTO
-    private QuestionDTO createQuestionDTO(Pokemon correct, String mode) {
+    private QuestionDTO createQuestionDTO(Pokemon correct, String mode, List<Pokemon> pokemonPool) {
         QuestionDTO dto = new QuestionDTO();
         dto.setPokemonName(correct.getName());
         dto.setAudioUrl(S3Config.getEndpoint() + "/" + S3Config.getBucket() + "/" + correct.getAudioPath());
         dto.setImageUrl("https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/" + correct.getPokedexId() + ".png");
 
         if ("normal".equalsIgnoreCase(mode)) {
-            List<Pokemon> allPokemon = pokemonRepository.findAll();
             Set<Pokemon> choiceSet = new HashSet<>();
             choiceSet.add(correct);
 
             Random random = new Random();
             while (choiceSet.size() < 4) {
-                choiceSet.add(allPokemon.get(random.nextInt(allPokemon.size())));
+                choiceSet.add(pokemonPool.get(random.nextInt(pokemonPool.size())));
             }
 
             List<ChoiceDTO> choiceDTOs = choiceSet.stream()

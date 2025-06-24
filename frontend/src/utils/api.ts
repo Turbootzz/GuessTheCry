@@ -69,8 +69,8 @@ export function fetchUserStats(userId: number, auth: Auth) {
 }
 
 // -- game-related functions
-export function startGame(mode: string, auth: Auth) {
-	return apiFetch(`/game/start?mode=${mode}`, auth, { method: 'POST' })
+export function startGame(mode: string, generation: number, auth: Auth) {
+	return apiFetch(`/game/start?mode=${mode}&generation=${generation}`, auth, { method: 'POST' })
 }
 
 export function submitAnswer(
