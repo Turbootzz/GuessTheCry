@@ -1,18 +1,21 @@
 # ⚡ GuessTheCry - Pokémon Sound Quiz
 
-**GuessTheCry** is an interactive web application where you listen to a Pokémon cry and guess which Pokémon it is. Choose between **Normal Mode** (multiple choice) or **Expert Mode** (just sound and a hint). Can you score a perfect 10/10?
+**GuessTheCry** is an interactive web application where you listen to a Pokémon cry and guess which Pokémon it is. Create an account, choose your favorite generation, and test your knowledge in **Normal Mode** (multiple choice) or **Expert Mode** (sound only with optional hints). Can you get a perfect score and top your personal leaderboard?
 
 ---
 
 ## 🚀 Features
 
-* 🎧 **Authentic Pokémon cries** streamed from MinIO (S3-compatible)
-* 🧠 **Normal Mode**: Multiple-choice with images
-* 🔥 **Expert Mode**: Only the cry, optional hints, and visual feedback after answering
-* ⚙️ **Backend**: Java 21 with Spring Boot and Jersey
-* 🎨 **Frontend**: React + TypeScript + Vite + Tailwind CSS
-* 🗃️ **Database**: PostgreSQL for metadata
-* 🌐 **S3 Storage**: MinIO for hosting sound files
+*   🔐 **User Authentication**: Secure registration and login system using JWT.
+*   🎧 **Self-Hosted Assets**: Pokémon cries and high-quality sprites are self-hosted on S3-compatible storage container for reliability and performance.
+*   🕹️ **Secure Game Loop**: All game logic and scoring are handled server-side to prevent cheating.
+*   🧠 **Two Game Modes**:
+    *   **Normal Mode**: Multiple-choice with images.
+    *   **Expert Mode**: Guess by sound only, with optional, weighted hints.
+*   📈 **Personal Profile**: Track your game statistics, including games played and average accuracy per mode.
+*    поколения **Generation Filter**: Play with Pokémon from a specific generation or all generations combined.
+*   ⚡ **High-Performance Backend**: Built with Java 21, Spring Boot, and Jersey, featuring an intelligent caching layer for external APIs and database queries.
+*   🎨 **Modern Frontend**: A responsive and fast UI built with React, TypeScript, Vite, and Tailwind CSS.
 
 ---
 
@@ -22,14 +25,11 @@
 GuessTheCry/
 ├── backend/                 # Java Spring Boot + Jersey API
 │   ├── src/main/java/com/guessthecry
-│   ├── src/main/resources/application.properties
-│   ├── src/main/resources/data/pokemon-data.json
 │   └── build.gradle
 ├── frontend/                # React + Vite + TypeScript + Tailwind
-│   ├── src/App.tsx
-│   ├── tailwind.config.js
-│   └── postcss.config.js
-├── scripts/                 # Scripts for fetching audio and generating Pokémon data
+│   ├── src/
+│   └── package.json
+├── scripts/                 # Scripts for fetching assets and generating data
 │   └── create-update-pokemon/
 │       └── generate-pokemon.mjs
 ├── README.md
@@ -39,105 +39,111 @@ GuessTheCry/
 
 ## ⚙️ Getting Started
 
+### Prerequisites
+- Java 21
+- Node.js (v18+)
+- PostgreSQL
+- S3-compatible Server
+
 ### 1. Backend Setup
 
-Make sure you have Java 21 and PostgreSQL installed. You also need a MinIO server running and configured.
-
-```bash
-cd backend
-./gradlew bootRun
-```
-
-> Edit `application.properties` to set your database and S3/MinIO credentials.
+1.  **Configure Environment**: Copy `.env.example` to `.env` in the `backend/` directory and fill in your PostgreSQL and S3 credentials.
+2.  **Run the application**:
+    ```bash
+    cd backend
+    ./gradlew bootRun
+    ```
+The backend will start on `http://localhost:8080`.
 
 ### 2. Frontend Setup
 
-You need Node.js (v18+ recommended):
+1.  **Install dependencies**:
+    ```bash
+    cd frontend
+    npm install
+    ```
+2.  **Run the development server**:
+    ```bash
+    npm run dev
+    ```
+The frontend is now available at `http://localhost:5173`.
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+### 3. Generate and Upload Pokémon Assets
 
-> Frontend runs at `http://localhost:5173` and expects the backend at `http://localhost:8080`.
+The script in the `scripts/` directory is essential for populating your S3 server and creating the necessary data for the backend.
 
-### 3. Generate Pokémon Data
+1.  **Configure Script**: Ensure the `.env` file in the `backend/` directory is correctly set up, as the script reads from it.
+2.  **Run the script**:
+    ```bash
+    cd scripts/create-update-pokemon
+    npm install # Install dependencies like 'got' and 'aws-sdk'
+    node generate-pokemon.mjs
+    ```
 
-To download all Pokémon cries and generate metadata:
+This script will:
+-   Download all `.mp3` cries from Pokémon Showdown.
+-   Download all official artwork sprites from PokéAPI's CDN.
+-   Upload cries and sprites to ಅವರವರ S3-buckets (`pokemon-cries` en `pokemon-sprites`).
+-   Generate a `pokemon-data.json` file.
 
-```bash
-cd scripts/create-update-pokemon
-node generate-pokemon.mjs
-```
-
-This will:
-- Download .mp3 cries from Pokémon Showdown
-- Normalize names and upload them to MinIO
-- Save all Pokémon metadata to `pokemon-data.json`
-
-Move this JSON into `backend/src/main/resources/data` before running the backend.
+**Important**: After running the script, move the generated `pokemon-data.json` to `backend/src/main/resources/data/`. The backend will use this file to seed de database bij de eerste opstart.
 
 ---
 
-## 🔌 API Overview
+## 🔌 API Overview (New Secure Flow)
 
-### `GET /api/quiz/question?mode=normal|expert`
+The old `/api/quiz/question` endpoint is deprecated. All game interactions now happen through de beveiligde `/api/game` endpoints.
 
-Returns a new quiz question depending on the selected mode.
+### Authentication
+*   `POST /api/auth/register` - Create a new user account.
+*   `POST /api/auth/login` - Log in to receive a JWT.
 
-#### 📦 Normal Mode response
+### Game Flow
+*   `POST /api/game/start?mode=...&generation=...`
+    - Starts a new game session.
+    - **Requires JWT.**
+    - Returns a `gameId` and the first question.
 
-```json
-{
-  "pokemonName": "squirtle",
-  "audioUrl": "http://...",
-  "pokedexId": 7,
-  "choices": [
-    { "name": "pikachu", "imageUrl": "..." },
-    { "name": "bulbasaur", "imageUrl": "..." },
-    { "name": "squirtle", "imageUrl": "..." },
-    { "name": "charmander", "imageUrl": "..." }
-  ],
-  "imageUrl": "https://..." // correct answer image always included
-}
-```
+*   `POST /api/game/{gameId}/answer`
+    - Submits a user's answer for the current question.
+    - **Requires JWT.**
+    - Returns whether the answer was correct and provides the next question or the final game results.
 
-#### 🧠 Expert Mode response
-
-```json
-{
-  "pokemonName": "charmander",
-  "audioUrl": "...",
-  "hint": "Fire",
-  "imageUrl": "https://..." // correct answer image always included
-}
-```
+### Profile
+*   `GET /api/auth/{userId}/stats`
+    - Retrieves the game statistics for a given user.
+    - **Requires JWT.**
 
 ---
 
 ## 🧪 Technologies Used
 
-| Category     | Tech Stack                            |
-| ------------ | ------------------------------------- |
-| Frontend     | React, TypeScript, Vite               |
-| Styling      | Tailwind CSS                          |
-| Backend      | Java 21, Spring Boot, Jersey (JAX-RS) |
-| Persistence  | Spring Data JPA, PostgreSQL           |
-| File Storage | MinIO (S3-compatible)                 |
-| Deployment   | Dev-mode local with Gradle and Vite   |
+| Category      | Tech Stack                                  |
+| ------------- | ------------------------------------------- |
+| Frontend      | React, TypeScript, Vite                     |
+| Styling       | Tailwind CSS                                |
+| State Mgt.    | React Context                               |
+| Backend       | Java 21, Spring Boot, Jersey (JAX-RS)       |
+| Persistence   | Spring Data JPA, PostgreSQL                 |
+| Security      | Spring Security, JWT                        |
+| Caching       | Spring Cache                                |
+| File Storage  | S3                                          |
+| Scripting     | Node.js                                     |
 
 ---
 
 ## 📸 Screenshots
 
--
+*(Hier kun je screenshots van je login, profielpagina en de game zelf toevoegen)*
+- *[Screenshot van de Generatie Selectie]*
+- *[Screenshot van de Quiz in Normal Mode]*
+- *[Screenshot van de Profielpagina met statistieken]*
 
 ---
 
 ## 🛑 Disclaimer
 
-All Pokémon names, sounds, and images belong to Nintendo, Game Freak, and The Pokémon Company. This project is for educational purposes only and is not intended for commercial use.
+This project is a non-commercial, educational endeavor. All Pokémon-related names, sounds, and images are the property of Nintendo, Game Freak, and The Pokémon Company.
 
 ---
 
@@ -145,5 +151,5 @@ All Pokémon names, sounds, and images belong to Nintendo, Game Freak, and The P
 
 Made with ❤️ by **Thijs Herman**
 
-* Sounds by [Pokémon Showdown](https://play.pokemonshowdown.com/audio/cries/)
-* Images via [PokéAPI Artwork CDN](https://pokeapi.co/)
+*   Sounds sourced from [Pokémon Showdown](https://play.pokemonshowdown.com/audio/cries/).
+*   Original sprites and Pokémon data sourced from [PokéAPI](https://pokeapi.co/).
