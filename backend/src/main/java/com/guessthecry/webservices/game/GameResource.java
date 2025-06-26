@@ -42,7 +42,6 @@ public class GameResource {
 
     @POST
     @Path("/start")
-    @RolesAllowed({"User", "Admin"})
     @Produces(MediaType.APPLICATION_JSON)
     public Response startGame(@QueryParam("mode") String mode, @QueryParam("generation") @DefaultValue("0") int generationNumber) throws IOException {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -80,7 +79,6 @@ public class GameResource {
 
     @POST
     @Path("/{gameId}/answer")
-    @RolesAllowed({"User", "Admin"})
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response submitAnswer(@PathParam("gameId") UUID gameId, AnswerRequestDTO answerRequest) throws IOException {

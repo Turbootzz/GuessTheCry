@@ -12,7 +12,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.*;
@@ -93,30 +95,33 @@ public class UserResource {
 
     @GET
     @Path("/{id}")
-    @RolesAllowed({"User", "Admin"})
+    @RolesAllowed({"ROLE_USER", "ROLE_ADMIN"})
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUser(@PathParam("id") Long id) {
-        Optional<User> userOpt = userRepository.findById(id);
-        if (userOpt.isEmpty()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
 
-        User user = userOpt.get();
-        UserDTO responseDto = new UserDTO(user.getId(), user.getUsername());
+        User userToFind = userRepository.findById(id)
+                .orElseThrow(() -> new WebApplicationException(Response.Status.NOT_FOUND));
+
+        // only the user itself or admin
+        if (!currentUsername.equals(userToFind.getUsername()) && !authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            return Response.status(Response.Status.FORBIDDEN).entity("Access denied").build();
+        }
+        UserDTO responseDto = new UserDTO(userToFind.getId(), userToFind.getUsername());
         return Response.ok(responseDto).build();
     }
 
     @GET
     @Path("/{id}/stats")
-    @RolesAllowed({"User", "Admin"})
+    @RolesAllowed({"ROLE_USER", "ROLE_ADMIN"})
     @Produces(MediaType.APPLICATION_JSON)
     public Response getStats(@PathParam("id") Long userId) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        if (userOpt.isEmpty()) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
+        // get user for view stats
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new WebApplicationException("User not found", Response.Status.NOT_FOUND));
 
-        User user = userOpt.get();
         List<UserStats> stats = statsRepository.findAllByUser(user);
 
         // Map to DTO

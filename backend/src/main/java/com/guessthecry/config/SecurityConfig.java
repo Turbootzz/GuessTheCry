@@ -43,8 +43,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // auth endpoint is public
-                        .requestMatchers("/api/auth/**").permitAll()
+                        // auth endpoint and pokemon names are public
+                        .requestMatchers("/api/auth/**", "/api/pokemon/names").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

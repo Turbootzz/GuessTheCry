@@ -1,6 +1,7 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import type { Question } from './QuizController'
 //import AudioPlayer from './ui/AudioPlayer'
+import { usePokemon } from '../context/PokemonContext'
 
 interface QuizScreenProps {
 	question: Question
@@ -22,6 +23,7 @@ export default function QuizScreen({
 	const [guess, setGuess] = useState('')
 	const [hintIndex, setHintIndex] = useState(0)
 	const audioRef = useRef<HTMLAudioElement>(null)
+	const { pokemonNames } = usePokemon() // for auto-completion
 
 	// play audio when question changes
 	useEffect(() => {
@@ -32,6 +34,21 @@ export default function QuizScreen({
 			audioRef.current.play().catch(e => console.error('Audio play failed:', e))
 		}
 	}, [question])
+
+	// useMemo will update suggestions only when guess changes
+	const suggestions = useMemo(() => {
+		if (!guess || guess.length < 2) {
+			return [] // no suggestion
+		}
+		return pokemonNames
+			.filter((name: string) => name.toLowerCase().startsWith(guess.toLowerCase()))
+			.slice(0, 5) // max 5 suggestions
+	}, [guess, pokemonNames])
+
+	const handleSuggestionClick = (name: string) => {
+		setGuess(name) // fill input with suggestion
+		handleAnswerSubmit(name) // instant submit
+	}
 
 	const handleAnswerSubmit = (answer: string) => {
 		if (lastAnswerResult) return // prevent dublicate submissions
@@ -102,14 +119,33 @@ export default function QuizScreen({
 							handleAnswerSubmit(guess)
 						}}
 					>
-						<input
-							type="text"
-							value={guess}
-							onChange={e => setGuess(e.target.value)}
-							placeholder="Enter Pokémon name..."
-							className="mb-4 w-full rounded-lg border border-gray-300 px-4 py-3 text-center focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-							autoFocus
-						/>
+						<div className="relative mb-4">
+							<input
+								type="text"
+								value={guess}
+								onChange={e => setGuess(e.target.value)}
+								placeholder="Enter Pokémon name..."
+								className="mb-4 w-full rounded-lg border border-gray-300 px-4 py-3 text-center focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+								autoFocus
+								autoComplete="off" // disable browser autocomplete
+							/>
+							{/* suggestions */}
+							{suggestions.length > 0 && (
+								<div className="absolute top-full right-0 left-0 z-10 mt-1 rounded-md border border-gray-200 bg-white text-left shadow-lg">
+									<ul>
+										{suggestions.map(name => (
+											<li
+												key={name}
+												onClick={() => handleSuggestionClick(name)}
+												className="cursor-pointer px-4 py-2 text-left hover:bg-gray-100"
+											>
+												{name.charAt(0).toUpperCase() + name.slice(1)}
+											</li>
+										))}
+									</ul>
+								</div>
+							)}
+						</div>
 						<button
 							type="submit"
 							className="w-full rounded-lg bg-emerald-700 py-3 font-semibold text-white transition-colors hover:bg-emerald-800"
@@ -121,25 +157,32 @@ export default function QuizScreen({
 			</div>
 			{/* Hints section */}
 			{mode === 'expert' && (
-				<div className="mt-6 text-left">
-					{Array.isArray(question.hints) && question.hints.length > 0 && (
-						<>
-							<p className="mb-2 font-semibold text-gray-700">Hints:</p>
-							<ul className="mb-2 list-inside list-disc text-gray-600">
-								{question.hints.slice(0, hintIndex).map((hint, index) => (
-									<li key={index}>💡 {hint}</li>
-								))}
-							</ul>
-						</>
-					)}
-					{hintIndex < (question.hints?.length ?? 0) && !lastAnswerResult && (
-						<button
-							onClick={() => setHintIndex(hintIndex + 1)}
-							className="rounded bg-yellow-500 px-3 py-2 text-sm font-semibold text-white hover:bg-yellow-600"
-						>
-							Show Hint {hintIndex + 1}
-						</button>
-					)}
+				<div className="mt-6 min-h-[60px] text-left">
+					{/* only show hints when there is no answer */}
+					{!lastAnswerResult &&
+						Array.isArray(question.hints) &&
+						question.hints.length > 0 && (
+							<>
+								{hintIndex > 0 && (
+									<p className="mb-2 font-semibold text-gray-700">Hints:</p>
+								)}
+
+								<ul className="mb-2 list-inside list-disc text-gray-600">
+									{question.hints.slice(0, hintIndex).map((hint, index) => (
+										<li key={index}>💡 {hint}</li>
+									))}
+								</ul>
+
+								{hintIndex < question.hints.length && (
+									<button
+										onClick={() => setHintIndex(hintIndex + 1)}
+										className="rounded bg-yellow-500 px-3 py-2 text-sm font-semibold text-white hover:bg-yellow-600"
+									>
+										Show Hint {hintIndex + 1}
+									</button>
+								)}
+							</>
+						)}
 				</div>
 			)}
 		</div>
