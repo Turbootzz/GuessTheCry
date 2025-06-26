@@ -125,7 +125,7 @@ export default function QuizScreen({
 								value={guess}
 								onChange={e => setGuess(e.target.value)}
 								placeholder="Enter Pokémon name..."
-								className="mb-4 w-full rounded-lg border border-gray-300 px-4 py-3 text-center focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+								className="w-full rounded-lg border border-gray-300 px-4 py-3 text-center focus:ring-2 focus:ring-indigo-500 focus:outline-none"
 								autoFocus
 								autoComplete="off" // disable browser autocomplete
 							/>
@@ -137,7 +137,7 @@ export default function QuizScreen({
 											<li
 												key={name}
 												onClick={() => handleSuggestionClick(name)}
-												className="cursor-pointer px-4 py-2 text-left hover:bg-gray-100"
+												className="cursor-pointer px-4 py-1 text-left hover:bg-gray-100"
 											>
 												{name.charAt(0).toUpperCase() + name.slice(1)}
 											</li>
@@ -148,7 +148,7 @@ export default function QuizScreen({
 						</div>
 						<button
 							type="submit"
-							className="w-full rounded-lg bg-emerald-700 py-3 font-semibold text-white transition-colors hover:bg-emerald-800"
+							className="mt-4 w-full rounded-lg bg-emerald-700 py-3 font-semibold text-white transition-colors hover:bg-emerald-800"
 						>
 							Submit Guess
 						</button>
