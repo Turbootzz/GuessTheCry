@@ -12,35 +12,37 @@ interface UserStats {
 export default function Profile() {
 	const auth = useAuth()
 	const { user } = auth
-	const [stats, setStats] = useState<UserStats[]>([])
-	const [isLoading, setIsLoading] = useState(true)
+	const [stats, setStats] = useState<UserStats[] | null>(null)
 	const [error, setError] = useState<string | null>(null)
 
 	useEffect(() => {
-		// can only fetch stats if user is logged in
-		if (user && user.id) {
-			fetchUserStats(user.id, auth)
-				.then(data => {
-					setStats(data)
-				})
-				.catch(err => {
-					setError(err.message || 'Failed to load profile data.')
-				})
-				.finally(() => {
-					setIsLoading(false)
-				})
-		} else {
-			setIsLoading(false)
-			setError('User not found.')
-		}
+		if (!user?.id) return
+
+		const controller = new AbortController()
+
+		fetchUserStats(user.id, auth)
+			.then(data => {
+				if (!controller.signal.aborted) setStats(data)
+			})
+			.catch(err => {
+				if (!controller.signal.aborted) {
+					setError(err instanceof Error ? err.message : 'Failed to load profile data.')
+				}
+			})
+
+		return () => controller.abort()
 	}, [user, auth])
 
-	if (isLoading) {
-		return <div className="text-center text-xl">Loading profile...</div>
+	if (!user) {
+		return <div className="text-center text-xl text-red-500">User not found.</div>
 	}
 
 	if (error) {
 		return <div className="text-center text-xl text-red-500">{error}</div>
+	}
+
+	if (stats === null) {
+		return <div className="text-center text-xl">Loading profile...</div>
 	}
 
 	return (

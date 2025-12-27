@@ -25,10 +25,11 @@ export default function QuizScreen({
 	const audioRef = useRef<HTMLAudioElement>(null)
 	const { pokemonNames } = usePokemon() // for auto-completion
 
+	// Reset state when question changes (using key prop from parent forces remount, but this is a fallback)
+	// Note: Parent already uses key={questionIndex} which remounts this component, resetting state automatically
+
 	// play audio when question changes
 	useEffect(() => {
-		setGuess('')
-		setHintIndex(0)
 		if (audioRef.current) {
 			audioRef.current.src = `${question.audioUrl}?t=${Date.now()}`
 			audioRef.current.play().catch(e => console.error('Audio play failed:', e))

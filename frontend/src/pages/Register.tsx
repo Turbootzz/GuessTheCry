@@ -22,8 +22,8 @@ export default function Register() {
 			// After successful registration, redirect to login page
 			alert('Registration successful! Please log in.')
 			navigate('/login')
-		} catch (err: any) {
-			setError(err.message || 'An unexpected error occurred.')
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'An unexpected error occurred.')
 		}
 	}
 

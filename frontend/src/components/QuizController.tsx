@@ -62,8 +62,8 @@ export default function QuizController() {
 			setGameId(data.gameId)
 			setQuestion(data.firstQuestion)
 			setQuestionIndex(0)
-		} catch (err: any) {
-			setError(err.message || 'Failed to start game.')
+		} catch (err) {
+			setError(err instanceof Error ? err.message : 'Failed to start game.')
 		} finally {
 			setIsLoading(false)
 		}
