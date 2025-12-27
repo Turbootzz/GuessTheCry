@@ -1,14 +1,12 @@
 package com.guessthecry.utils;
 
-import com.guessthecry.config.SecurityConfig;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
+import io.jsonwebtoken.security.Keys;
 import java.util.Date;
 
 @Component
@@ -17,17 +15,17 @@ public class JwtUtil {
     private String jwtSecret;
     private long expirationMs = 1000 * 60 * 60 * 10; // 10 hour token time
 
-    private Key getSigningKey() {
+    private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
     public String generateToken(String username, String role) {
         return Jwts.builder()
-                .setSubject(username)
+                .subject(username)
                 .claim("role", role)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + expirationMs))
+                .signWith(getSigningKey())
                 .compact();
     }
 
@@ -54,10 +52,10 @@ public class JwtUtil {
     }
 
     private Claims extractClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }
